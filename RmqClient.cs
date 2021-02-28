@@ -54,6 +54,37 @@ namespace RmqClient
             }            
         }
 
+        public async Task SendRequestsPubSub(IBus bus)
+        {
+            try
+            {
+                _stopwatch.Reset();
+                _stopwatch.Start();
+
+                var requestsPerSec = Configuration.RequestsPerSec;
+                var totalRequests = Configuration.TotalRequests;
+                var delay = 1000 / requestsPerSec;
+
+                await bus.PubSub.SubscribeAsync<Response>("Subscribe_Reponse", ProcessRoundTripTime);
+
+                var count = 0;
+                while (count < totalRequests)
+                {
+                    var request = new Request();
+                    await bus.PubSub.PublishAsync(request).ConfigureAwait(false);
+                    _requestList.Add(request);
+                    await Task.Delay(delay);
+                    count++;
+                }
+                _stopwatch.Stop();
+                _logger.Information($"TotalRequests={totalRequests}, TotalRoundTripTime={_stopwatch.ElapsedMilliseconds} Milliseconds");
+            }
+            catch (Exception ex)
+            {
+                _logger.Error($"Server failed to process the request with following error : {ex.Message}");
+            }
+        }
+
         private async Task<Request> PublishRequests(IAdvancedBus advancedBus, IExchange exchange)
         {
             var message = new Message<Request>(new Request { RequestId = Guid.NewGuid().ToString(), RequestTimeStamp = DateTime.Now });
