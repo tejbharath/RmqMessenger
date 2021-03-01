@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using EasyNetQ;
 using EasyNetQ.Topology;
@@ -11,9 +9,9 @@ namespace RmqServer
 {
     public class RmqServer : IRmqServer
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<RmqServer> _logger;
 
-        public RmqServer(ILogger logger)
+        public RmqServer(ILogger<RmqServer> logger)
         {
             _logger = logger;
         }

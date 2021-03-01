@@ -40,9 +40,9 @@ namespace RmqServer
                 {
                     var advancedBus = Configuration.Bus.Advanced;
                     var exchange = await advancedBus.ExchangeDeclareAsync(Configuration.ExchangeName, ExchangeType.Direct);
-                    var responseQueue = await advancedBus.QueueDeclareAsync(Configuration.RequestQueueName, config =>
+                    var responseQueue = await advancedBus.QueueDeclareAsync(Configuration.RequestQueueName, declareConfig =>
                     {
-                        config.AsAutoDelete(false)
+                        declareConfig.AsAutoDelete(false)
                             .AsDurable(true)
                             .AsExclusive(false)
                             .WithArgument("expires", Configuration.ExpiryTime)

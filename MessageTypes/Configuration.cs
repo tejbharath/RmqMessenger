@@ -34,8 +34,7 @@ namespace Infrastructure
 
         static Configuration()
         {
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
+            var configuration = new ConfigurationBuilder()                    
                 .AddJsonFile("appsettings.json", false, true).Build();
             Host = configuration["Rmq:host"];
             Vhost = configuration["Rmq:vHost"];
@@ -53,7 +52,7 @@ namespace Infrastructure
 
         private static IBus CreateBus()
         {
-            return RabbitHutch.CreateBus($"host={Host};vhost={Vhost};username={UserName};password={Password}");
+            return RabbitHutch.CreateBus($"host={Host};virtualhost={Vhost};username={UserName};password={Password}");
         }
     }
 }

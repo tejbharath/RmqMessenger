@@ -4,20 +4,21 @@ using System.Threading.Tasks;
 using Infrastructure;
 using Infrastructure.Models;
 using System;
-using Serilog;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Extensions.Logging;
+using ILogger = Serilog.ILogger;
 
 namespace RmqClient
 {
     public class RmqClient : IRmqClient
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<RmqClient> _logger;
         private readonly Stopwatch _stopwatch;
         private readonly IList<Request> _requestList;
 
-        public RmqClient(ILogger logger)
+        public RmqClient(ILogger<RmqClient> logger)
         {
             _logger = logger;
             _stopwatch = Stopwatch.StartNew();
@@ -46,11 +47,11 @@ namespace RmqClient
                     count++;
                 }
                 _stopwatch.Stop();
-                _logger.Information($"TotalRequests={totalRequests}, TotalRoundTripTime={_stopwatch.ElapsedMilliseconds} Milliseconds");
+                _logger.LogInformation($"TotalRequests={totalRequests}, TotalRoundTripTime={_stopwatch.ElapsedMilliseconds} Milliseconds");
             }
             catch(Exception ex)
             {
-                _logger.Error($"Server failed to process the request with following error : {ex.Message}");
+                _logger.LogError($"Server failed to process the request with following error : {ex.Message}");
             }            
         }
 
@@ -77,11 +78,11 @@ namespace RmqClient
                     count++;
                 }
                 _stopwatch.Stop();
-                _logger.Information($"TotalRequests={totalRequests}, TotalRoundTripTime={_stopwatch.ElapsedMilliseconds} Milliseconds");
+                _logger.LogInformation($"TotalRequests={totalRequests}, TotalRoundTripTime={_stopwatch.ElapsedMilliseconds} Milliseconds");
             }
             catch (Exception ex)
             {
-                _logger.Error($"Server failed to process the request with following error : {ex.Message}");
+                _logger.LogError($"Server failed to process the request with following error : {ex.Message}");
             }
         }
 
@@ -103,7 +104,7 @@ namespace RmqClient
             _requestList.Remove(request);
             var roundTripTime = (receivedTime - request.RequestTimeStamp).Milliseconds;
 
-            _logger.Information($"RequestId={request.RequestId}, ResponseId={response.ResponseId}, RoundTripTime={roundTripTime}");
+            _logger.LogInformation($"RequestId={request.RequestId}, ResponseId={response.ResponseId}, RoundTripTime={roundTripTime}");
         }
     } 
 }
