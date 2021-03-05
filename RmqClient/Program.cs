@@ -1,8 +1,6 @@
 ﻿using System;
 using System.IO;
-using EasyNetQ;
-using EasyNetQ.Topology;
-using Infrastructure;
+using System.Security.Cryptography.X509Certificates;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -28,38 +26,12 @@ namespace RmqClient
                 .ConfigureServices((context, services) =>
                 {
                     services.AddTransient<IRmqClient, RmqClient>();
+                    services.AddTransient<IClientInitializer, ClientInitializer>();
                 })
                 .UseSerilog()
                 .Build();
 
-            using (var serviceScope = host.Services.CreateScope())
-            {
-                var rmqClient = serviceScope.ServiceProvider.GetService<IRmqClient>();
-
-                try
-                {
-                    var advancedBus = Configuration.Bus.Advanced;
-                    var exchange =
-                        await advancedBus.ExchangeDeclareAsync(Configuration.ExchangeName, ExchangeType.Direct);
-                    var responseQueue = await advancedBus.QueueDeclareAsync(Configuration.ResponseQueueName, config =>
-                    {
-                        config.AsAutoDelete(false)
-                            .AsDurable(true)
-                            .AsExclusive(false)
-                            .WithArgument("expires", Configuration.ExpiryTime)
-                            .WithArgument("perQueueMessageTtl", Configuration.ExpiryTime);
-                    });
-                    advancedBus.Bind(exchange, responseQueue, Configuration.ResponseRoutingKey);
-
-                    Console.WriteLine("Sending requests using Advanced API");
-                    await rmqClient?.SendRequests(advancedBus, responseQueue, exchange);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                    throw;
-                }
-            }
+            await host.Services.GetService<IClientInitializer>()?.InitiateClientAsync();
         }
 
         private static void BuildConfig(IConfigurationBuilder builder)
